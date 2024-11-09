@@ -1,14 +1,14 @@
 # 15 Puzzle
 
 **Author**: Matthew Lenda  
-**Created**: ?
+**Created**: 09.11.2024
 
 ---
 
-**15 Puzzle** is a classic sliding puzzle game where players arrange tiles in numerical order by sliding them into an empty space. The game is traditionally played on a 4x4 grid, but this version allows customization with 3x3 and 5x5 grid options. You can also choose to play with numbers or use custom images for a unique visual challenge.
+**15 Puzzle** is a classic sliding puzzle game where players arrange tiles in numerical order by sliding them into an empty space. The game is traditionally played on a 4x4 grid, but this version allows customization with 3x3, 5x5 and 6x6 grid options. You can also choose to play with numbers or use custom images for a unique visual challenge.
 
 ## Key Features
-- **Multiple Grid Sizes**: Play on 3x3, 4x4, or 5x5 grids to adjust the difficulty level.
+- **Multiple Grid Sizes**: Play on 3x3, 4x4, 5x5 or 6x6 grids to adjust the difficulty level.
 - **Image and Number Options**: Choose between a traditional numbered puzzle or customize with images.
 - **Move Counter**: Track the number of moves taken to solve the puzzle.
 - **Shuffle and Reset Options**: Start with a randomized configuration and reset as needed.
@@ -24,6 +24,6 @@
 Clone the repository and open the project to start playing 15 Puzzle!
 
 ```bash
-git clone https://github.com/your-username/15-puzzle.git
-cd 15-puzzle
+git clone https://github.com/your-username/15puzzle.git
+cd 15puzzle
 # Follow any additional instructions if needed to run the game

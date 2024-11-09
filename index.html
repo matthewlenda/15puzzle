@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Click & Slide</title>
+  <style>
+    body,
+    #main {
+      font-family: monospace;
+      margin: 0px;
+      padding: 0px;
+      text-align: center;
+      margin-top: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #imgDiv {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    #img {
+      width: 100px;
+      height: 100px;
+      margin-left: 30px;
+      margin-right: 30px;
+    }
+
+    #leftArrow,
+    #rightArrow {
+      font-size: 50px;
+      cursor: pointer;
+    }
+
+    .sizeButton {
+      background: whitesmoke;
+      border: 1px solid #54c4fc;
+      border-radius: 5px;
+      width: 50px;
+    }
+
+    .sizeButton:hover {
+      background: #54c4fc;
+      border: 1px solid black;
+      cursor: pointer;
+    }
+
+    input {
+      margin: 4px;
+    }
+
+    .tile {
+      margin: 5px;
+    }
+
+    table {
+      border: 2px solid black;
+    }
+
+    #timeDisplay {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    const app = {
+      array: {},
+      imgArray: ["img/trump.jpeg", "img/lm.jpg", "img/f150raptor.jpg"],
+      selectedImg: 0,
+      size: null,
+      elapsedTime: 0,
+      timerInterval: null,
+      init() {
+        const main = document.createElement("div");
+        main.id = "main";
+        const imgDiv = document.createElement("div");
+        imgDiv.id = 'imgDiv'
+
+        const leftArrow = document.createElement("div");
+        leftArrow.id = 'leftArrow';
+        leftArrow.innerText = '←'
+        leftArrow.addEventListener("click", function () {
+          if (app.selectedImg === 0) {
+            app.selectedImg = app.imgArray.length - 1
+          } else {
+            app.selectedImg--
+          }
+          document.getElementById('img').src = app.imgArray[app.selectedImg]
+        });
+
+        const img = document.createElement("img");
+        img.src = this.imgArray[this.selectedImg];
+        img.id = 'img';
+
+        const rightArrow = document.createElement("div");
+        rightArrow.id = 'rightArrow';
+        rightArrow.innerText = '→'
+        rightArrow.addEventListener("click", function () {
+          if (app.selectedImg === app.imgArray.length - 1) {
+            app.selectedImg = 0
+          } else {
+            app.selectedImg++
+          }
+          document.getElementById('img').src = app.imgArray[app.selectedImg]
+        });
+
+        imgDiv.append(leftArrow)
+        imgDiv.append(img)
+        imgDiv.append(rightArrow)
+        main.append(imgDiv);
+
+        const buttonDiv = document.createElement("div");
+        buttonDiv.id = "buttonDiv"
+
+
+        for (let i = 0; i < 4; i++) {
+          const button = document.createElement("input");
+          button.type = "button";
+          button.value = i + 3 + " x " + (i + 3);
+          button.classList.add("sizeButton")
+          button.addEventListener("click", function () {
+            app.game(i + 3);
+          });
+          buttonDiv.append(button);
+        }
+
+        main.append(buttonDiv);
+
+        let timeDisplay = document.createElement("div");
+        timeDisplay.id = 'timeDisplay'
+        main.append(timeDisplay);
+
+        document.body.append(main);
+      },
+      game(size) {
+        this.size = size;
+        this.createArray(size);
+        this.clearTimerDisplay();
+        const table = document.createElement("table");
+        for (let i = 0; i < size; i++) { // y
+          const tr = document.createElement("tr");
+          for (let j = 0; j < size; j++) { // x
+            const td = document.createElement("td");
+            td.classList.add("tile");
+            td.addEventListener("click", function () {
+              app.moveObject(i, j);
+            });
+            td.dataset.x = j;
+            td.dataset.y = i;
+            td.style.height = 300 / size + "px";
+            td.style.width = 300 / size + "px";
+            let tempImg = this.imgArray[this.selectedImg]
+            td.style.backgroundImage = `url(${tempImg})`;
+            td.style.backgroundSize = "300px 300px";
+            td.style.backgroundPosition =
+              (j * -300) / size + "px " + (i * -300) / size + "px";
+            if (i == size - 1 && j == size - 1) {
+              td.style.backgroundImage = null;
+              td.id = null
+              this.array[i][j] = td;
+              tr.append(td);
+            } else {
+              td.id = 'td' + i + j;
+              this.array[i][j] = td;
+              tr.append(td);
+            }
+          }
+          table.append(tr);
+        }
+        main.append(table);
+        this.randomize(50 * this.size);
+      },
+      createArray(size) {
+        for (let i = 0; i < size; i++) {
+          this.array[i] = [];
+        }
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            this.array[i][j] = 0;
+          }
+        }
+      },
+      randomize(number) {
+        let count = 0;
+        let x = this.size - 1;
+        let y = this.size - 1;
+        let td = this.array[x][y];
+        let interval = setInterval(() => {
+          if (count >= number) {
+            clearInterval(interval);
+            this.startTimer();
+            return;
+          }
+          td = this.array[x][y];
+          let direction = Math.floor(Math.random() * 4);
+          if (direction == 0 && y - 1 >= 0) {
+            this.swapTiles(x, y - 1, x, y);
+            x = x;
+            y = y - 1;
+            count++;
+          }
+          if (direction == 1 && y + 1 < this.size) {
+            this.swapTiles(x, y + 1, x, y);
+            x = x;
+            y = y + 1;
+            count++;
+          }
+          if (direction == 2 && x - 1 >= 0) {
+            this.swapTiles(x - 1, y, x, y);
+            x = x - 1;
+            y = y;
+            count++;
+          }
+          if (direction == 3 && x + 1 < this.size) {
+            this.swapTiles(x + 1, y, x, y);
+            x = x + 1;
+            y = y;
+            count++;
+          }
+        }, 2);
+      },
+      moveObject(i, j) {
+        if (i + 1 < this.size && this.array[i + 1][j].id === "null") {
+          this.swapTiles(i, j, i + 1, j);
+          this.winCondition();
+        } else if (i - 1 >= 0 && this.array[i - 1][j].id === "null") {
+          this.swapTiles(i, j, i - 1, j);
+          this.winCondition();
+        } else if (j + 1 < this.size && this.array[i][j + 1].id === "null") {
+          this.swapTiles(i, j, i, j + 1);
+          this.winCondition();
+        } else if (j - 1 >= 0 && this.array[i][j - 1].id === "null") {
+          this.swapTiles(i, j, i, j - 1);
+          this.winCondition();
+        }
+      },
+      swapTiles(i1, j1, i2, j2) {
+        const temp = this.array[i1][j1].id;
+        this.array[i1][j1].id = this.array[i2][j2].id;
+        this.array[i2][j2].id = temp;
+
+        const tempX = this.array[i2][j2].getAttribute('data-x')
+        const tempY = this.array[i2][j2].getAttribute('data-y')
+        this.array[i2][j2].dataset.x = this.array[i1][j1].getAttribute('data-x')
+        this.array[i2][j2].dataset.y = this.array[i1][j1].getAttribute('data-y')
+        this.array[i1][j1].dataset.x = tempX
+        this.array[i1][j1].dataset.y = tempY
+
+        this.array[i1][j1].style.backgroundImage = "";
+        this.array[i2][j2].style.backgroundPosition = `${(this.array[i2][j2].getAttribute('data-x') * -300) / this.size}px ${(this.array[i2][j2].getAttribute('data-y') * -300) / this.size}px`;
+        let tempImg = this.imgArray[this.selectedImg]
+        this.array[i2][j2].style.backgroundImage = `url(${tempImg})`;
+      },
+      winCondition() {
+        let count = 0;
+        for (let i = 0; i < this.size; i++) {
+          for (let j = 0; j < this.size; j++) {
+            if (this.array[i][j].id == "td" + i + j) {
+              count++;
+            }
+          }
+        }
+        if (count == 8) {
+          this.stopTimer()
+          let p = document.createElement("p")
+          p.innerText = "Wygrałeś! Twój czas to " + this.elapsedTime + " s"
+          document.getElementById("main").append(p)
+        }
+      },
+      clearTimerDisplay() {
+        let timeArray = ['0', '0', ':', '0', '0', ':', '0', '0', '.', '0', '0', '0']
+        timeArray.forEach(number => {
+          let img = document.createElement("img")
+          if (number == '.') {
+            img.src = `/img/numbers/dot.gif`
+          } else if (number == ':') {
+            img.src = `/img/numbers/colon.gif`
+          } else {
+            img.src = `/img/numbers/c${number}.gif`
+          }
+          document.getElementById('timeDisplay').append(img)
+        });
+      },
+      timerDisplay() {
+        document.getElementById('timeDisplay').innerHTML = ""
+        let timeArray = ['0', '0', ':', '0', '0', ':', '0', '0', '.', '0', '0', '0']
+        let time = this.elapsedTime
+        time = [...time.toString()]
+        for (let i = 0; i < time.length; i++) {
+          timeArray[timeArray.length - i - 1] = time[time.length - i - 1]
+        }
+        timeArray.forEach(number => {
+          let img = document.createElement("img")
+          if (number == '.') {
+            img.src = `/img/numbers/dot.gif`
+          } else if (number == ':') {
+            img.src = `/img/numbers/colon.gif`
+          } else {
+            img.src = `/img/numbers/c${number}.gif`
+          }
+          document.getElementById('timeDisplay').append(img)
+        });
+      },
+      savedGamesDisplay() {
+        const table = document.createElement("table")
+        table.id = "gamesDisplay"
+
+      },
+      startTimer() {
+        let startDate = Date.now()
+        this.timerInterval = setInterval(() => {
+          const currentTime = Date.now()
+          this.elapsedTime = ((currentTime - startDate) / 1000).toFixed(3)
+          this.timerDisplay()
+          //document.getElementById('timeDisplay').innerText = `Czas gry: ${ this.elapsedTime.toFixed(3) } s`;
+        }, 100)
+      },
+      stopTimer() {
+        clearInterval(this.timerInterval)
+      }
+    };
+    window.onload = function () {
+      app.init();
+    };
+  </script>
+</body>
+
+</html>
