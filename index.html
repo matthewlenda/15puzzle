@@ -24,11 +24,19 @@
       align-items: center;
     }
 
-    #img {
+    #mainImg {
+      display: flex;
+      flex-direction: row;
       width: 100px;
       height: 100px;
       margin-left: 30px;
       margin-right: 30px;
+      overflow: hidden;
+    }
+
+    .img {
+      width: 100px;
+      height: 100px;
     }
 
     #leftArrow,
@@ -37,14 +45,21 @@
       cursor: pointer;
     }
 
-    .sizeButton {
+    .sizeButton,
+    .saveGameButton {
       background: whitesmoke;
       border: 1px solid #54c4fc;
       border-radius: 5px;
       width: 50px;
     }
 
-    .sizeButton:hover {
+    .saveGameButton {
+      width: 100px;
+      margin: 5px;
+    }
+
+    .sizeButton:hover,
+    .saveGameButton:hover {
       background: #54c4fc;
       border: 1px solid black;
       cursor: pointer;
@@ -73,10 +88,12 @@
     const app = {
       array: {},
       imgArray: ["img/trump.jpeg", "img/lm.jpg", "img/f150raptor.jpg"],
+      savedGames: [],
       selectedImg: 0,
       size: null,
       elapsedTime: 0,
       timerInterval: null,
+      randInterval: null,
       init() {
         const main = document.createElement("div");
         main.id = "main";
@@ -86,33 +103,21 @@
         const leftArrow = document.createElement("div");
         leftArrow.id = 'leftArrow';
         leftArrow.innerText = '←'
-        leftArrow.addEventListener("click", function () {
-          if (app.selectedImg === 0) {
-            app.selectedImg = app.imgArray.length - 1
-          } else {
-            app.selectedImg--
-          }
-          document.getElementById('img').src = app.imgArray[app.selectedImg]
-        });
+        leftArrow.addEventListener("click", () => { this.leftClick() });
 
-        const img = document.createElement("img");
-        img.src = this.imgArray[this.selectedImg];
-        img.id = 'img';
+        const mainImg = document.createElement("div");
+        mainImg.id = 'mainImg';
+        this.createMainImg(mainImg);
 
         const rightArrow = document.createElement("div");
         rightArrow.id = 'rightArrow';
         rightArrow.innerText = '→'
-        rightArrow.addEventListener("click", function () {
-          if (app.selectedImg === app.imgArray.length - 1) {
-            app.selectedImg = 0
-          } else {
-            app.selectedImg++
-          }
-          document.getElementById('img').src = app.imgArray[app.selectedImg]
+        rightArrow.addEventListener("click", () => {
+          this.rightClick()
         });
 
         imgDiv.append(leftArrow)
-        imgDiv.append(img)
+        imgDiv.append(mainImg)
         imgDiv.append(rightArrow)
         main.append(imgDiv);
 
@@ -130,7 +135,6 @@
           });
           buttonDiv.append(button);
         }
-
         main.append(buttonDiv);
 
         let timeDisplay = document.createElement("div");
@@ -138,11 +142,29 @@
         main.append(timeDisplay);
 
         document.body.append(main);
+
+        const gameDiv = document.createElement("div");
+        gameDiv.id = "gameDiv"
+        document.body.append(gameDiv);
       },
       game(size) {
+        this.stopTimer()
+        this.stopRandomize()
+        this.elapsedTime = 0
+        this.timerDisplay()
         this.size = size;
         this.createArray(size);
-        this.clearTimerDisplay();
+      },
+      createArray(size) {
+        for (let i = 0; i < size; i++) {
+          this.array[i] = [];
+        }
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            this.array[i][j] = 0;
+          }
+        }
+        gameDiv.innerHTML = ""
         const table = document.createElement("table");
         for (let i = 0; i < size; i++) { // y
           const tr = document.createElement("tr");
@@ -174,27 +196,23 @@
           }
           table.append(tr);
         }
-        main.append(table);
+        gameDiv.append(table);
+
+        let button = document.createElement("button")
+        button.innerText = "Save game"
+        button.classList.add("saveGameButton")
+        gameDiv.append(button);
+        main.append(gameDiv);
         this.randomize(50 * this.size);
-      },
-      createArray(size) {
-        for (let i = 0; i < size; i++) {
-          this.array[i] = [];
-        }
-        for (let i = 0; i < size; i++) {
-          for (let j = 0; j < size; j++) {
-            this.array[i][j] = 0;
-          }
-        }
       },
       randomize(number) {
         let count = 0;
         let x = this.size - 1;
         let y = this.size - 1;
         let td = this.array[x][y];
-        let interval = setInterval(() => {
+        this.randInterval = setInterval(() => {
           if (count >= number) {
-            clearInterval(interval);
+            clearInterval(this.randInterval);
             this.startTimer();
             return;
           }
@@ -224,7 +242,72 @@
             y = y;
             count++;
           }
-        }, 2);
+        }, 1);
+      },
+      stopRandomize() {
+        clearInterval(this.randInterval)
+      },
+      createMainImg(mainImg) {
+        this.imgArray.forEach(imgSrc => {
+          const img = document.createElement("img");
+          img.src = imgSrc;
+          img.classList.add('img')
+          mainImg.append(img)
+        });
+        const img = document.createElement("img");
+        img.src = this.imgArray[0];
+        img.classList.add('img')
+        mainImg.append(img)
+      },
+      leftClick() {
+        if (app.selectedImg === 0) {
+          app.selectedImg = app.imgArray.length - 1
+          document.getElementById("mainImg").scrollLeft = (app.imgArray.length) * 100
+          let temp = 0
+          const slide = setInterval(() => {
+            document.getElementById("mainImg").scrollLeft -= 10
+            temp -= 10
+            if (temp == -100) {
+              clearInterval(slide)
+            }
+          }, 30);
+        } else {
+          app.selectedImg--
+          let temp = 0
+          const slide = setInterval(() => {
+            document.getElementById("mainImg").scrollLeft -= 10
+            temp -= 10
+            if (temp == -100) {
+              clearInterval(slide)
+            }
+          }, 30);
+        }
+        console.log("selected ", app.selectedImg)
+      },
+      rightClick() {
+        if (app.selectedImg === app.imgArray.length - 1) {
+          app.selectedImg = 0
+          let temp = 0
+          const slide = setInterval(() => {
+            document.getElementById("mainImg").scrollLeft += 10
+            temp += 10
+            if (temp == 100) {
+              clearInterval(slide)
+              document.getElementById("mainImg").scrollLeft = 0
+            }
+          }, 30);
+        } else {
+          app.selectedImg++
+          let temp = 0
+          const slide = setInterval(() => {
+            document.getElementById("mainImg").scrollLeft += 10
+            temp += 10
+            if (temp == 100) {
+              clearInterval(slide)
+            }
+          }, 30);
+        }
+        console.log("selected ", app.selectedImg)
       },
       moveObject(i, j) {
         if (i + 1 < this.size && this.array[i + 1][j].id === "null") {
@@ -274,6 +357,11 @@
           document.getElementById("main").append(p)
         }
       },
+      savedGamesDisplay() {
+        const table = document.createElement("table")
+        table.id = "gamesDisplay"
+
+      },
       clearTimerDisplay() {
         let timeArray = ['0', '0', ':', '0', '0', ':', '0', '0', '.', '0', '0', '0']
         timeArray.forEach(number => {
@@ -307,11 +395,6 @@
           }
           document.getElementById('timeDisplay').append(img)
         });
-      },
-      savedGamesDisplay() {
-        const table = document.createElement("table")
-        table.id = "gamesDisplay"
-
       },
       startTimer() {
         let startDate = Date.now()
